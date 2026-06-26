@@ -55,18 +55,34 @@ Unlike conventional forecasting systems that rely on a single model or fixed-wei
 ```text
 Adaptive-MoE-Forecasting/
 │
-├── data/                              # M5 Competition dataset
-├── data/predictions/                  # Intermediate prediction outputs
+├── data/                              # Raw M5 Competition dataset
+│   ├── calendar.csv
+│   ├── sales_train_validation.csv
+│   └── sell_prices.csv
 │
-├── 01_prepare.py                      # Dataset preprocessing
-├── 06a_lightgbm_real.py               # LightGBM expert
-├── 06b_lstm_real.py                   # PyTorch LSTM expert
-├── 07_gate_pytorch.py                 # Neural gating network
+├── src/                               # 13-Script High-Fidelity Pipeline
+│   ├── 00_make_subset.py              # Generates the 80-item training subset
+│   ├── 01_calendar_features.py        # Processes holiday signals & event density
+│   ├── 02_reshape_merge.py            # Converts wide sales matrix to long format
+│   ├── 03_merge_prices.py             # Integrates individual item pricing
+│   ├── 04_volatility_regime.py        # Establishes structural rolling regimes
+│   ├── 05_build_features.py           # Compiles structural lags & rolling target statistics
+│   ├── 06a_lightgbm_real.py           # Tabular LightGBM Expert Engine
+│   ├── 06b_lstm_real.py               # Deep Recurrent PyTorch LSTM Sequence Expert
+│   ├── 07_gating_network.py           # Mixture of Experts (MoE) Neural Gating Layer
+│   ├── 08_ablation_study.py           # Evaluates model variations vs baselines
+│   ├── 09_dri_confidence_safety_stock.py # Computes Demand Risk Index & Calibrations
+│   └── 10_inventory_simulation.py     # Runs risk-aware supply chain simulations
 │
-├── config.py                          # Configuration and hyperparameters
-├── requirements.txt                   # Project dependencies
-├── run_pipeline.py                    # Complete pipeline orchestrator
-└── explainable_forecast_dashboard.html
+├── outputs/                           # Generated Model Outputs & Dashboard Data
+│   ├── ablation_table.csv
+│   ├── business_impact.csv
+│   ├── fusion_results.csv
+│   └── risk_confidence_test.csv
+│
+├── index.html                         # Live GitHub Pages Dashboard Endpoint
+├── requirements.txt                   # Project Dependencies
+└── README.md                          # Main Project Documentation
 ```
 
 ---
@@ -125,30 +141,26 @@ Place all downloaded CSV files inside this directory.
 
 # ▶️ Running the Pipeline
 
-Execute the complete pipeline using:
+Ensure your virtual environment is active, then execute the pipeline scripts in their chronological sequence from the root directory:
 
 ```bash
-python run_pipeline.py
-```
+# Preprocessing & Feature Engineering
+python src/00_make_subset.py
+python src/01_calendar_features.py
+python src/02_reshape_merge.py
+python src/03_merge_prices.py
+python src/04_volatility_regime.py
+python src/05_build_features.py
 
-The pipeline automatically performs:
+# Model Training & Inference
+python src/06a_lightgbm_real.py
+python src/06b_lstm_real.py
 
-* Data preprocessing
-* Feature engineering
-* LightGBM expert training
-* PyTorch LSTM training
-* Neural gate training
-* Dynamic forecast fusion
-* Demand Risk Index computation
-* Confidence calibration
-* Inventory simulation
-* Dashboard update
-
-After successful execution:
-
-```text
-✔ Pipeline completed successfully.
-✔ Dashboard updated with latest predictions.
+# Downstream Evaluation & Simulation
+python src/07_gating_network.py
+python src/08_ablation_study.py
+python src/09_dri_confidence_safety_stock.py
+python src/10_inventory_simulation.py
 ```
 
 ---
