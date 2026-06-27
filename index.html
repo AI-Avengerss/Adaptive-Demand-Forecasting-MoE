@@ -107,7 +107,7 @@
     .bar-fill {
       height: 100%;
       background: var(--accent);
-      transition: width 0.15s ease-out;
+      transition: width 0.1s ease-out;
     }
     .zone-strip {
       height: 4px;
@@ -182,7 +182,7 @@
     .scrubber-label {
       font-family: var(--mono);
       font-size: 12px;
-      min-width: 140px;
+      min-width: 150px;
       text-align: right;
     }
     .bottom-grid {
@@ -247,7 +247,7 @@
 <div id="dashboard-root"></div>
 
 <script>
-  // High-fidelity production execution metrics data
+  // High-fidelity library execution updates
   const ABLATION = [
     { Regime: "Stable", Configuration: "(a) Tree only", N: 1702, RMSE: 6.493, MAE: 4.284 },
     { Regime: "Stable", Configuration: "(b) Sequence only", N: 1702, RMSE: 6.674, MAE: 4.284 },
@@ -279,6 +279,7 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     initDashboardLayout();
+    initChartBase();
     render();
   });
 
@@ -309,73 +310,68 @@
       </div>
     `;
 
-    // Securely bind event listener directly upon layout paint
-    const scrubberElement = document.getElementById('scrubber');
-    if (scrubberElement) {
-      scrubberElement.addEventListener('input', (e) => {
-        dayIdx = parseInt(e.target.value);
-        render();
-      });
-    }
+    // Bind event using the inputs directly to prevent locking Focus loss
+    document.getElementById('scrubber').addEventListener('input', (e) => {
+      dayIdx = parseInt(e.target.value);
+      render();
+    });
   }
 
-  function render() {
-    const row = TIMELINE_DATA[dayIdx];
-    
-    const labelEl = document.getElementById('scrubber-text');
-    const scrubEl = document.getElementById('scrubber');
-    if (labelEl) labelEl.innerText = `Day d_${row.d} (${row.date})`;
-    if (scrubEl) scrubEl.value = dayIdx;
-    
-    renderChart(row);
-    renderGatingPanel(row);
-    renderAblationPanel();
-    renderBusinessPanel();
-  }
-
-  function renderChart(currentRow) {
-    const canvasElement = document.getElementById('mainChart');
-    if (!canvasElement) return;
-    
-    const ctx = canvasElement.getContext('2d');
+  // Generate chart shell once on bootup
+  function initChartBase() {
+    const ctx = document.getElementById('mainChart').getContext('2d');
     const labels = TIMELINE_DATA.map(r => `d_${r.d}`);
     
-    const actuals = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.actual : null);
-    const fusions = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.fusion : null);
-    const trees = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_tree : null);
-    const seqs = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_seq : null);
-
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [
-          { label: 'True Sales Value', data: actuals, borderColor: '#e8ede5', borderWidth: 2, pointRadius: 4, tension: 0.1 },
-          { label: 'MoE Learned Fusion', data: fusions, borderColor: '#7dd3a8', borderWidth: 3, pointRadius: 0, tension: 0.1 },
-          { label: 'LightGBM Tabular Expert', data: trees, borderColor: '#f87171', borderDash: [4, 4], pointRadius: 6, showLine: false },
-          { label: 'PyTorch LSTM Expert', data: seqs, borderColor: '#facc15', borderDash: [4, 4], pointRadius: 6, showLine: false }
+          { label: 'True Sales Value', data: [], borderColor: '#e8ede5', borderWidth: 2, pointRadius: 4, tension: 0.1 },
+          { label: 'MoE Learned Fusion', data: [], borderColor: '#7dd3a8', borderWidth: 3, pointRadius: 0, tension: 0.1 },
+          { label: 'LightGBM Tabular Expert', data: [], borderColor: '#f87171', borderDash: [4, 4], pointRadius: 6, showLine: false },
+          { label: 'PyTorch LSTM Expert', data: [], borderColor: '#facc15', borderDash: [4, 4], pointRadius: 6, showLine: false }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: false, // Disabling layout animation gives snappy drag updates
         plugins: { legend: { labels: { color: '#8fa088', font: { family: 'Inter', size: 11 } } } },
         scales: {
           x: { grid: { color: '#2a3329' }, ticks: { color: '#8fa088', font: { family: 'IBM Plex Mono' } } },
-          y: { grid: { color: '#2a3329' }, ticks: { color: '#8fa088', font: { family: 'IBM Plex Mono' } } }
+          y: { min: 5, max: 35, grid: { color: '#2a3329' }, ticks: { color: '#8fa088', font: { family: 'IBM Plex Mono' } } }
         }
       }
     });
   }
 
+  function render() {
+    const row = TIMELINE_DATA[dayIdx];
+    
+    document.getElementById('scrubber-text').innerText = `Day d_${row.d} (${row.date})`;
+    document.getElementById('scrubber').value = dayIdx;
+    
+    updateChartData();
+    renderGatingPanel(row);
+    renderAblationPanel();
+    renderBusinessPanel();
+  }
+
+  // Seamlessly patch the datasets array directly without rebuilding canvas
+  function updateChartData() {
+    if (!chartInstance) return;
+
+    chartInstance.data.datasets[0].data = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.actual : null);
+    chartInstance.data.datasets[1].data = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.fusion : null);
+    chartInstance.data.datasets[2].data = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_tree : null);
+    chartInstance.data.datasets[3].data = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_seq : null);
+    
+    chartInstance.update('none'); // Update style mode 'none' handles the fluid sliding action
+  }
+
   function renderGatingPanel(row) {
     const container = document.getElementById('gating-panel');
-    if (!container) return;
-    
     container.innerHTML = `
       <div class="panel-title">Context Aware Gating Allocation</div>
       <div class="zone-strip zone-${row.zone}"></div>
@@ -421,8 +417,6 @@
 
   function renderAblationPanel() {
     const container = document.getElementById('ablation-panel');
-    if (!container) return;
-    
     container.innerHTML = `
       <div class="panel-title">Four Way Ablation Protocol Matrix</div>
       <div class="tabs">
@@ -455,8 +449,6 @@
 
   function renderBusinessPanel() {
     const container = document.getElementById('business-panel');
-    if (!container) return;
-    
     const bestRow = BUSINESS.find(r => r.Configuration.includes("Learned fusion"));
     container.innerHTML = `
       <div class="panel-title">Supply Chain Simulation &amp; Risk Metrics</div>
