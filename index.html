@@ -107,7 +107,7 @@
     .bar-fill {
       height: 100%;
       background: var(--accent);
-      transition: width 0.1s ease-out;
+      transition: width 0.05s ease-out;
     }
     .zone-strip {
       height: 4px;
@@ -127,9 +127,6 @@
       border-radius: 3px;
       margin-bottom: 12px;
     }
-    .status-GREEN { color: var(--green); background: var(--green-dim); border: 1px solid #22543d; }
-    .status-YELLOW { color: var(--yellow); background: var(--yellow-dim); border: 1px solid #744210; }
-    .status-RED { color: var(--red); background: var(--red-dim); border: 1px solid #742a2a; }
 
     .metrics-grid {
       display: grid;
@@ -247,7 +244,7 @@
 <div id="dashboard-root"></div>
 
 <script>
-  // High-fidelity library execution updates
+  // High-fidelity target production run statistics
   const ABLATION = [
     { Regime: "Stable", Configuration: "(a) Tree only", N: 1702, RMSE: 6.493, MAE: 4.284 },
     { Regime: "Stable", Configuration: "(b) Sequence only", N: 1702, RMSE: 6.674, MAE: 4.284 },
@@ -280,7 +277,8 @@
   window.addEventListener('DOMContentLoaded', () => {
     initDashboardLayout();
     initChartBase();
-    render();
+    renderStaticPanels();
+    render(); // Initial state build
   });
 
   function initDashboardLayout() {
@@ -295,7 +293,33 @@
           <div class="panel-title">Dynamic Forecasting &amp; Truth Trajectory</div>
           <div class="chart-container"><canvas id="mainChart"></canvas></div>
         </div>
-        <div class="panel" id="gating-panel"></div>
+        <div class="panel" id="gating-panel">
+          <div class="panel-title">Context Aware Gating Allocation</div>
+          <div id="gate-zone-strip" class="zone-strip"></div>
+          <div id="gate-status-badge" class="status-badge"></div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Demand Risk Index</div>
+              <div id="metric-dri-val" class="metric-val"></div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Dynamic Safety Stock</div>
+              <div id="metric-safety-val" class="metric-val" style="color: var(--accent)"></div>
+            </div>
+          </div>
+          <div class="weights-container">
+            <div class="weight-row">
+              <div class="weight-labels"><span>LightGBM Tabular Weight</span><span id="txt-w-tree"></span></div>
+              <div class="bar-bg"><div id="bar-fill-tree" class="bar-fill" style="background: var(--red)"></div></div>
+            </div>
+            <div class="weight-row">
+              <div class="weight-labels"><span>PyTorch LSTM Weight</span><span id="txt-w-seq"></span></div>
+              <div class="bar-bg"><div id="bar-fill-seq" class="bar-fill" style="background: var(--yellow)"></div></div>
+            </div>
+          </div>
+          <div class="panel-title" style="margin-top:20px; margin-bottom:8px;">Neural Gate Diagnostics</div>
+          <div id="gate-explanation" class="explanation-text"></div>
+        </div>
       </div>
       <div class="panel timeline-panel">
         <div class="panel-title">Chronological Operational Simulation Hub</div>
@@ -310,14 +334,13 @@
       </div>
     `;
 
-    // Bind event using the inputs directly to prevent locking Focus loss
+    // High performance input tracking — doesn't lock focus state
     document.getElementById('scrubber').addEventListener('input', (e) => {
       dayIdx = parseInt(e.target.value);
-      render();
+      renderTimelineIndependentNodes();
     });
   }
 
-  // Generate chart shell once on bootup
   function initChartBase() {
     const ctx = document.getElementById('mainChart').getContext('2d');
     const labels = TIMELINE_DATA.map(r => `d_${r.d}`);
@@ -336,7 +359,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: false, // Disabling layout animation gives snappy drag updates
+        animation: false,
         plugins: { legend: { labels: { color: '#8fa088', font: { family: 'Inter', size: 11 } } } },
         scales: {
           x: { grid: { color: '#2a3329' }, ticks: { color: '#8fa088', font: { family: 'IBM Plex Mono' } } },
@@ -346,73 +369,53 @@
     });
   }
 
-  function render() {
-    const row = TIMELINE_DATA[dayIdx];
-    
-    document.getElementById('scrubber-text').innerText = `Day d_${row.d} (${row.date})`;
-    document.getElementById('scrubber').value = dayIdx;
-    
-    updateChartData();
-    renderGatingPanel(row);
+  // Render static data panels only once to preserve DOM memory layout
+  function renderStaticPanels() {
     renderAblationPanel();
     renderBusinessPanel();
   }
 
-  // Seamlessly patch the datasets array directly without rebuilding canvas
-  function updateChartData() {
-    if (!chartInstance) return;
-
-    chartInstance.data.datasets[0].data = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.actual : null);
-    chartInstance.data.datasets[1].data = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.fusion : null);
-    chartInstance.data.datasets[2].data = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_tree : null);
-    chartInstance.data.datasets[3].data = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_seq : null);
-    
-    chartInstance.update('none'); // Update style mode 'none' handles the fluid sliding action
+  // Main system update loop
+  function render() {
+    renderTimelineIndependentNodes();
   }
 
-  function renderGatingPanel(row) {
-    const container = document.getElementById('gating-panel');
-    container.innerHTML = `
-      <div class="panel-title">Context Aware Gating Allocation</div>
-      <div class="zone-strip zone-${row.zone}"></div>
-      
-      <div class="status-badge status-${row.zone}">
-        OPERATIONAL TARGET MODE: ${row.zone} RELIABILITY
-      </div>
+  // High performance localized property modifications
+  function renderTimelineIndependentNodes() {
+    const row = TIMELINE_DATA[dayIdx];
+    
+    // 1. Text Scrubber labels
+    document.getElementById('scrubber-text').innerText = `Day d_${row.d} (${row.date})`;
+    document.getElementById('scrubber').value = dayIdx;
 
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-label">Demand Risk Index</div>
-          <div class="metric-val" style="color: ${row.zone === 'RED' ? 'var(--red)' : row.zone === 'YELLOW' ? 'var(--yellow)' : 'var(--green)'}">
-            ${(row.dri * 100).toFixed(1)}%
-          </div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Dynamic Safety Stock</div>
-          <div class="metric-val" style="color: var(--accent)">+${row.safety.toFixed(1)} units</div>
-        </div>
-      </div>
+    // 2. Localized Node values injection (Zero innerHTML redraw overhead)
+    document.getElementById('gate-zone-strip').className = `zone-strip zone-${row.zone}`;
+    
+    const badge = document.getElementById('gate-status-badge');
+    badge.className = `status-badge status-${row.zone}`;
+    badge.innerText = `OPERATIONAL TARGET MODE: ${row.zone} RELIABILITY`;
 
-      <div class="weights-container">
-        <div class="weight-row">
-          <div class="weight-labels">
-            <span>LightGBM Tabular Weight</span>
-            <span>${(row.w_tree * 100).toFixed(0)}%</span>
-          </div>
-          <div class="bar-bg"><div class="bar-fill" style="width: ${row.w_tree * 100}%; background: var(--red)"></div></div>
-        </div>
-        <div class="weight-row">
-          <div class="weight-labels">
-            <span>PyTorch LSTM Weight</span>
-            <span>${(row.w_seq * 100).toFixed(0)}%</span>
-          </div>
-          <div class="bar-bg"><div class="bar-fill" style="width: ${row.w_seq * 100}%; background: var(--yellow)"></div></div>
-        </div>
-      </div>
+    const driText = document.getElementById('metric-dri-val');
+    driText.innerText = `${(row.dri * 100).toFixed(1)}%`;
+    driText.style.color = row.zone === 'RED' ? 'var(--red)' : row.zone === 'YELLOW' ? 'var(--yellow)' : 'var(--green)';
+    
+    document.getElementById('metric-safety-val').innerText = `+${row.safety.toFixed(1)} units`;
+    document.getElementById('txt-w-tree').innerText = `${(row.w_tree * 100).toFixed(0)}%`;
+    document.getElementById('txt-w-seq').innerText = `${(row.w_seq * 100).toFixed(0)}%`;
+    
+    document.getElementById('bar-fill-tree').style.width = `${row.w_tree * 100}%`;
+    document.getElementById('bar-fill-seq').style.width = `${row.w_seq * 100}%`;
+    
+    document.getElementById('gate-explanation').innerText = row.explanation;
 
-      <div class="panel-title" style="margin-top:20px; margin-bottom:8px;">Neural Gate Diagnostics</div>
-      <div class="explanation-text">${row.explanation}</div>
-    `;
+    // 3. Fluid update to live Chart canvas
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.actual : null);
+      chartInstance.data.datasets[1].data = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.fusion : null);
+      chartInstance.data.datasets[2].data = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_tree : null);
+      chartInstance.data.datasets[3].data = TIMELINE_DATA.map((r, idx) => idx === dayIdx ? r.pred_seq : null);
+      chartInstance.update('none');
+    }
   }
 
   function renderAblationPanel() {
@@ -420,10 +423,10 @@
     container.innerHTML = `
       <div class="panel-title">Four Way Ablation Protocol Matrix</div>
       <div class="tabs">
-        <button class="tab ${activeTab === 'Stable' ? 'active' : ''}" onclick="switchTab('Stable')">STABLE PROFILE</button>
-        <button class="tab ${activeTab === 'Volatile' ? 'active' : ''}" onclick="switchTab('Volatile')">VOLATILE REGIME</button>
+        <button id="tab-Stable" class="tab ${activeTab === 'Stable' ? 'active' : ''}" onclick="switchTab('Stable')">STABLE PROFILE</button>
+        <button id="tab-Volatile" class="tab ${activeTab === 'Volatile' ? 'active' : ''}" onclick="switchTab('Volatile')">VOLATILE REGIME</button>
       </div>
-      ${renderAblationTable(activeTab)}
+      <div id="ablation-table-wrapper">${renderAblationTable(activeTab)}</div>
       <div class="note">
         <strong>Production Framework Verification:</strong> The evaluation metrics reflect native LightGBM and deep PyTorch LSTM Mixture of Experts optimization. The learned neural gating mechanism outperforms static baseline splits outright across both operational regimes, achieving optimal error minimization and logistical continuity.
       </div>
@@ -474,7 +477,9 @@
 
   function switchTab(tabName) {
     activeTab = tabName;
-    renderAblationPanel();
+    document.getElementById('tab-Stable').className = `tab ${activeTab === 'Stable' ? 'active' : ''}`;
+    document.getElementById('tab-Volatile').className = `tab ${activeTab === 'Volatile' ? 'active' : ''}`;
+    document.getElementById('ablation-table-wrapper').innerHTML = renderAblationTable(activeTab);
   }
 </script>
 
