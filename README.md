@@ -91,7 +91,7 @@ Adaptive-MoE-Forecasting/
 
 | Category             | Technologies                              |
 | -------------------- | ----------------------------------------- |
-| Programming Language | Python 3.11+                              |
+| Programming Language | Python 3.12                              |
 | Machine Learning     | LightGBM                                  |
 | Deep Learning        | PyTorch                                   |
 | Data Processing      | Pandas, NumPy, Joblib                     |
