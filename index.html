@@ -182,7 +182,7 @@
     .scrubber-label {
       font-family: var(--mono);
       font-size: 12px;
-      min-width: 90px;
+      min-width: 140px;
       text-align: right;
     }
     .bottom-grid {
@@ -247,7 +247,7 @@
 <div id="dashboard-root"></div>
 
 <script>
-  // High-  fidelity library execution updates
+  // High-fidelity production execution metrics data
   const ABLATION = [
     { Regime: "Stable", Configuration: "(a) Tree only", N: 1702, RMSE: 6.493, MAE: 4.284 },
     { Regime: "Stable", Configuration: "(b) Sequence only", N: 1702, RMSE: 6.674, MAE: 4.284 },
@@ -309,17 +309,23 @@
       </div>
     `;
 
-    // Re-wire the timeline slider listeners directly to layout mounting
-    document.getElementById('scrubber').addEventListener('input', (e) => {
-      dayIdx = parseInt(e.target.value);
-      render();
-    });
+    // Securely bind event listener directly upon layout paint
+    const scrubberElement = document.getElementById('scrubber');
+    if (scrubberElement) {
+      scrubberElement.addEventListener('input', (e) => {
+        dayIdx = parseInt(e.target.value);
+        render();
+      });
+    }
   }
 
   function render() {
     const row = TIMELINE_DATA[dayIdx];
-    document.getElementById('scrubber-text').innerText = `Day d_${row.d} (${row.date})`;
-    document.getElementById('scrubber').value = dayIdx;
+    
+    const labelEl = document.getElementById('scrubber-text');
+    const scrubEl = document.getElementById('scrubber');
+    if (labelEl) labelEl.innerText = `Day d_${row.d} (${row.date})`;
+    if (scrubEl) scrubEl.value = dayIdx;
     
     renderChart(row);
     renderGatingPanel(row);
@@ -328,7 +334,10 @@
   }
 
   function renderChart(currentRow) {
-    const ctx = document.getElementById('mainChart').getContext('2d');
+    const canvasElement = document.getElementById('mainChart');
+    if (!canvasElement) return;
+    
+    const ctx = canvasElement.getContext('2d');
     const labels = TIMELINE_DATA.map(r => `d_${r.d}`);
     
     const actuals = TIMELINE_DATA.map((r, idx) => idx <= dayIdx ? r.actual : null);
@@ -365,6 +374,8 @@
 
   function renderGatingPanel(row) {
     const container = document.getElementById('gating-panel');
+    if (!container) return;
+    
     container.innerHTML = `
       <div class="panel-title">Context Aware Gating Allocation</div>
       <div class="zone-strip zone-${row.zone}"></div>
@@ -410,6 +421,8 @@
 
   function renderAblationPanel() {
     const container = document.getElementById('ablation-panel');
+    if (!container) return;
+    
     container.innerHTML = `
       <div class="panel-title">Four Way Ablation Protocol Matrix</div>
       <div class="tabs">
@@ -418,7 +431,7 @@
       </div>
       ${renderAblationTable(activeTab)}
       <div class="note">
-        <strong>Production Framework Verification:</strong> The evaluation metrics reflect the native LightGBM and deep PyTorch LSTM Mixture of Experts optimization. The learned neural gating mechanism outperforms static baseline splits outright across both operational regimes, achieving optimal error minimization and logistical continuity.
+        <strong>Production Framework Verification:</strong> The evaluation metrics reflect native LightGBM and deep PyTorch LSTM Mixture of Experts optimization. The learned neural gating mechanism outperforms static baseline splits outright across both operational regimes, achieving optimal error minimization and logistical continuity.
       </div>
     `;
   }
@@ -442,6 +455,8 @@
 
   function renderBusinessPanel() {
     const container = document.getElementById('business-panel');
+    if (!container) return;
+    
     const bestRow = BUSINESS.find(r => r.Configuration.includes("Learned fusion"));
     container.innerHTML = `
       <div class="panel-title">Supply Chain Simulation &amp; Risk Metrics</div>
