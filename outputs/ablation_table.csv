@@ -1,0 +1,9 @@
+Regime,Configuration,N,RMSE,MAE
+Stable,(a) Tree only,1702,6.493,4.284
+Stable,(b) Sequence only,1702,6.674,4.284
+Stable,(c) Fixed 60/40,1702,6.477,4.239
+Stable,(d) Learned fusion,1702,6.42,4.167
+Volatile,(a) Tree only,538,7.696,4.809
+Volatile,(b) Sequence only,538,7.181,4.543
+Volatile,(c) Fixed 60/40,538,7.413,4.661
+Volatile,(d) Learned fusion,538,7.219,4.595
