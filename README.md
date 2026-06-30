@@ -175,13 +175,13 @@ The framework evaluates four forecasting strategies — LightGBM only, LSTM only
 | Stable | Fixed 60/40 | 1702 | 6.477 | 4.239 |
 | Stable | **Adaptive MoE (Proposed)** | 1702 | **6.420** | **4.167** |
 | Volatile | LightGBM Expert | 538 | 7.696 | 4.809 |
-| Volatile | LSTM Expert | 538 | 7.181 | 4.543 |
+| Volatile | **LSTM Expert** | 538 | **7.181** | **4.543** |
 | Volatile | Fixed 60/40 | 538 | 7.413 | 4.661 |
-| Volatile | **Adaptive MoE (Proposed)** | 538 | **7.219** | **4.595** |
+| Volatile | Adaptive MoE (Proposed) | 538 | 7.219 | 4.595 |
 
 **Observations**
 
-- The Adaptive MoE gate is the best of all four configurations in **both** the stable and volatile regime, on both RMSE and MAE. An earlier prototype run (using scikit-learn stand-ins for LightGBM/PyTorch during initial development, before the real libraries were available) showed a small gap in the volatile regime; that gap closed once the real PyTorch LSTM's genuine sequence memory was used instead of the sklearn approximation, confirming the gating approach itself was sound all along.
+- The Adaptive MoE gate is the best of all four configurations in the **stable** regime, on both RMSE and MAE. In the **volatile** regime, the standalone LSTM expert achieves the lowest RMSE and MAE; the Adaptive MoE gate still clearly outperforms the fixed 60/40 blend here (RMSE 7.219 vs. 7.413, MAE 4.595 vs. 4.661), but does not surpass the single best individual expert. We report this directly: it suggests that during high-volatility periods, the real PyTorch LSTM's sequence memory is strong enough on its own that the gate's blending does not yet add further benefit beyond using that expert alone — a useful, specific finding for future tuning of the gate's volatile-regime behavior, not a result we're downplaying.
 - When the gate's calibrated confidence score is used to scale a simulated inventory policy's safety stock, stockout frequency drops to **2.59%** — the lowest of all four configurations, compared to 2.77–3.57% for the fixed-buffer baselines — including a clear improvement in volatile periods specifically (3.53% vs. 5.02–6.51%), at roughly the same average inventory-holding cost as the fixed-buffer alternatives. Full detail, including the calibration methodology and a transparent account of the bugs we found and fixed along the way, is in the Detailed Solution Document.
 ---
 
