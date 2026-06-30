@@ -1,150 +1,3 @@
-<div id="dashboard-root"></div>
-<style>
-  :root {
-    --bg: #0f1410;
-    --panel: #161d17;
-    --panel-border: #2a3329;
-    --ink: #e8ede5;
-    --ink-dim: #8fa088;
-    --mono: 'IBM Plex Mono', 'SF Mono', Menlo, monospace;
-    --sans: 'Inter', -apple-system, sans-serif;
-    --green: #4ade80;
-    --green-dim: #1a3324;
-    --yellow: #facc15;
-    --yellow-dim: #332b14;
-    --red: #f87171;
-    --red-dim: #331818;
-    --accent: #7dd3a8;
-  }
-  #dashboard-root {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--ink);
-    padding: 28px;
-    border-radius: 4px;
-    max-width: 1180px;
-    margin: 0 auto;
-  }
-  .dash-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid var(--panel-border);
-    padding-bottom: 16px;
-    margin-bottom: 20px;
-  }
-  .dash-title {
-    font-size: 19px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .dash-title span { color: var(--accent); }
-  .dash-sub {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 2.1fr 1fr;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 3px;
-    padding: 18px;
-  }
-  .panel-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-dim);
-    margin-bottom: 12px;
-  }
-  .item-id {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent);
-  }
-  svg text { font-family: var(--mono); }
-  .axis-label { fill: var(--ink-dim); font-size: 9px; }
-  .gate-bar-tree { fill: #5b8def; }
-  .gate-bar-seq { fill: #e0a857; }
-  .zone-strip rect { stroke: none; }
-  .legend-row { display: flex; gap: 18px; margin-top: 10px; font-family: var(--mono); font-size: 10px; color: var(--ink-dim); align-items: center; }
-  .legend-dot { width: 9px; height: 9px; display: inline-block; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
-
-  .confidence-card { text-align: center; padding: 22px 18px; }
-  .conf-number { font-family: var(--mono); font-size: 46px; font-weight: 600; line-height: 1; margin: 6px 0; }
-  .conf-zone-tag {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    padding: 3px 10px;
-    border-radius: 2px;
-    margin-bottom: 10px;
-  }
-  .zone-GREEN { background: var(--green-dim); color: var(--green); }
-  .zone-YELLOW { background: var(--yellow-dim); color: var(--yellow); }
-  .zone-RED { background: var(--red-dim); color: var(--red); }
-  .conf-action {
-    font-size: 12.5px;
-    color: var(--ink-dim);
-    margin-top: 8px;
-    line-height: 1.5;
-  }
-  .conf-explain {
-    font-size: 11.5px;
-    color: var(--ink);
-    background: rgba(255,255,255,0.03);
-    border-left: 2px solid var(--accent);
-    padding: 10px 12px;
-    margin-top: 14px;
-    text-align: left;
-    line-height: 1.55;
-    font-family: var(--mono);
-  }
-
-  .day-scrubber {
-    width: 100%;
-    margin-top: 14px;
-    accent-color: var(--accent);
-  }
-  .scrub-date {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--ink-dim);
-    text-align: right;
-    margin-top: 4px;
-  }
-
-  table.ablation { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }
-  table.ablation th, table.ablation td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--panel-border); }
-  table.ablation th:first-child, table.ablation td:first-child { text-align: left; color: var(--ink-dim); }
-  table.ablation th { color: var(--ink-dim); font-weight: 500; text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.05em; }
-  table.ablation tr.best td { color: var(--accent); font-weight: 600; }
-  .regime-tag { font-family: var(--mono); font-size: 10px; color: var(--ink-dim); text-transform: uppercase; margin: 14px 0 6px; letter-spacing: 0.06em; }
-
-  .impact-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--panel-border); font-size: 12.5px; }
-  .impact-row:last-child { border-bottom: none; }
-  .impact-row .val { font-family: var(--mono); color: var(--accent); }
-  .note {
-    font-size: 11px;
-    color: var(--ink-dim);
-    line-height: 1.6;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--panel-border);
-  }
-</style>
-
 <script>
 (function() {
   const DATA = [
@@ -583,8 +436,6 @@
     return 'Avoid large commitments. Increase safety stock; review manually before ordering.';
   }
 
-  let dayIdx = DATA.length - 1;
-
   function explainDay(d, prevD) {
     const parts = [];
     if (prevD) {
@@ -606,10 +457,25 @@
     return parts.join(' ');
   }
 
-  function render() {
-    const d = DATA[dayIdx];
-    const prevD = dayIdx > 0 ? DATA[dayIdx - 1] : null;
+  function renderAblationTable(regime) {
+    const rows = ABLATION.filter(r => r.Regime === regime);
+    const minRmse = Math.min(...rows.map(r => r.RMSE));
+    return `
+      <table class="ablation">
+        <thead><tr><th>Configuration</th><th>N</th><th>RMSE</th><th>MAE</th></tr></thead>
+        <tbody>
+          ${rows.map(r => `
+            <tr class="${r.RMSE === minRmse ? 'best' : ''}">
+              <td>${r.Configuration}</td><td>${r.N}</td><td>${r.RMSE.toFixed(3)}</td><td>${r.MAE.toFixed(3)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
 
+  // Build Layout Structure Once
+  function initDashboard() {
     const maxVal = Math.max(...DATA.map(r => Math.max(r.sales, r.pred_learned_fusion, r.pred_fixed_60_40))) * 1.12;
     const W = 700, H = 220, padL = 32, padB = 22, padT = 12;
     const plotW = W - padL - 10, plotH = H - padT - padB;
@@ -620,25 +486,6 @@
     function pathFor(key) {
       return DATA.map((r, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i).toFixed(1)} ${yScale(r[key]).toFixed(1)}`).join(' ');
     }
-
-    const zoneStrip = DATA.map((r, i) => {
-      const x0 = xScale(i) - xStep / 2;
-      const w = xStep;
-      return `<rect class="zone-strip" x="${x0.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="6" fill="${zoneColor(r.zone)}" opacity="${i === dayIdx ? 1 : 0.35}"/>`;
-    }).join('');
-
-    const gateBars = DATA.map((r, i) => {
-      const bw = xStep * 0.6;
-      const x0 = xScale(i) - bw / 2;
-      const barH = 26;
-      const treeH = r.alpha_tree_gate * barH;
-      return `
-        <rect x="${x0.toFixed(1)}" y="${(barH - treeH).toFixed(1)}" width="${bw.toFixed(1)}" height="${treeH.toFixed(1)}" class="gate-bar-tree" opacity="${i === dayIdx ? 1 : 0.45}"/>
-        <rect x="${x0.toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${(barH - treeH).toFixed(1)}" class="gate-bar-seq" opacity="${i === dayIdx ? 1 : 0.45}"/>
-      `;
-    }).join('');
-
-    const cursorX = xScale(dayIdx);
 
     root.innerHTML = `
       <div class="dash-header">
@@ -661,8 +508,11 @@
             <path d="${pathFor('pred_learned_fusion')}" fill="none" stroke="var(--accent)" stroke-width="2"/>
             <path d="${pathFor('sales')}" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity="0.55"/>
             ${DATA.map((r,i) => `<circle cx="${xScale(i).toFixed(1)}" cy="${yScale(r.sales).toFixed(1)}" r="1.6" fill="var(--ink)" opacity="0.5"/>`).join('')}
-            <line x1="${cursorX.toFixed(1)}" y1="${padT}" x2="${cursorX.toFixed(1)}" y2="${padT+plotH}" stroke="var(--accent)" stroke-width="1" opacity="0.4"/>
-            <circle cx="${cursorX.toFixed(1)}" cy="${yScale(d.pred_learned_fusion).toFixed(1)}" r="3.5" fill="var(--accent)"/>
+            
+            <g id="cursor-group">
+              <line id="cursor-line" x1="0" y1="${padT}" x2="0" y2="${padT+plotH}" stroke="var(--accent)" stroke-width="1" opacity="0.4"/>
+              <circle id="cursor-dot" cx="0" cy="0" r="3.5" fill="var(--accent)"/>
+            </g>
           </svg>
           <div class="legend-row">
             <span><span class="legend-dot" style="background:var(--ink);opacity:0.55"></span>Actual sales</span>
@@ -671,11 +521,24 @@
           </div>
 
           <div class="panel-label" style="margin-top:18px;">Adaptive Gating Weights (&alpha;_tree vs &alpha;_seq) &middot; Confidence Zone</div>
-          <svg viewBox="0 0 ${W} 40" width="100%">
-            ${gateBars}
+          <svg viewBox="0 0 ${W} 40" width="100%" id="gate-bars-svg">
+            ${DATA.map((r, i) => {
+              const bw = xStep * 0.6;
+              const x0 = xScale(i) - bw / 2;
+              const barH = 26;
+              const treeH = r.alpha_tree_gate * barH;
+              return `
+                <rect x="${x0.toFixed(1)}" y="${(barH - treeH).toFixed(1)}" width="${bw.toFixed(1)}" height="${treeH.toFixed(1)}" class="gate-bar-tree" data-idx="${i}"/>
+                <rect x="${x0.toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${(barH - treeH).toFixed(1)}" class="gate-bar-seq" data-idx="${i}"/>
+              `;
+            }).join('')}
           </svg>
-          <svg viewBox="0 0 ${W} 6" width="100%" style="margin-top:4px;">
-            ${zoneStrip}
+          <svg viewBox="0 0 ${W} 6" width="100%" style="margin-top:4px;" id="zone-strips-svg">
+            ${DATA.map((r, i) => {
+              const x0 = xScale(i) - xStep / 2;
+              const w = xStep;
+              return `<rect class="zone-strip" x="${x0.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="6" fill="${zoneColor(r.zone)}" data-idx="${i}"/>`;
+            }).join('')}
           </svg>
           <div class="legend-row">
             <span><span class="legend-dot" style="background:#5b8def"></span>&alpha; tree (LightGBM)</span>
@@ -685,26 +548,11 @@
               &nbsp;<span class="legend-dot" style="background:var(--red)"></span>Red</span>
           </div>
 
-          <input type="range" class="day-scrubber" min="0" max="${DATA.length-1}" value="${dayIdx}" id="scrubber"/>
-          <div class="scrub-date">Viewing day ${dayIdx+1} / ${DATA.length} &middot; ${d.date}</div>
+          <input type="range" class="day-scrubber" min="0" max="${DATA.length-1}" value="${DATA.length-1}" id="scrubber"/>
+          <div class="scrub-date" id="scrub-date-text"></div>
         </div>
 
-        <div class="panel confidence-card">
-          <div class="conf-zone-tag zone-${d.zone}">${d.zone}</div>
-          <div class="conf-number" style="color:${zoneColor(d.zone)}">${d.calibrated_confidence.toFixed(0)}%</div>
-          <div class="panel-label" style="margin-bottom:2px;">Calibrated Confidence</div>
-          <div class="conf-action">${zoneAction(d.zone)}</div>
-          <div class="conf-explain">${explainDay(d, prevD)}</div>
-          <div class="legend-row" style="justify-content:space-between; margin-top:16px;">
-            <span>Forecast</span><span class="val">${d.pred_learned_fusion.toFixed(1)} units</span>
-          </div>
-          <div class="legend-row" style="justify-content:space-between;">
-            <span>Actual</span><span class="val">${d.sales} units</span>
-          </div>
-          <div class="legend-row" style="justify-content:space-between;">
-            <span>Safety stock</span><span class="val">${d.safety_stock.toFixed(1)} (base ${d.base_safety_stock.toFixed(1)})</span>
-          </div>
-        </div>
+        <div class="panel confidence-card" id="confidence-card-root"></div>
       </div>
 
       <div class="grid" style="grid-template-columns: 1.3fr 1fr;">
@@ -743,29 +591,64 @@
       </div>
     `;
 
-    document.getElementById('scrubber').addEventListener('input', (e) => {
-      dayIdx = parseInt(e.target.value);
-      render();
-    });
+    // Calculate dynamic values for scaling coordinates inside live updates
+    return { xScale, yScale };
   }
 
-  function renderAblationTable(regime) {
-    const rows = ABLATION.filter(r => r.Regime === regime);
-    const minRmse = Math.min(...rows.map(r => r.RMSE));
-    return `
-      <table class="ablation">
-        <thead><tr><th>Configuration</th><th>N</th><th>RMSE</th><th>MAE</th></tr></thead>
-        <tbody>
-          ${rows.map(r => `
-            <tr class="${r.RMSE === minRmse ? 'best' : ''}">
-              <td>${r.Configuration}</td><td>${r.N}</td><td>${r.RMSE.toFixed(3)}</td><td>${r.MAE.toFixed(3)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
+  // Dynamic Update Function (Fast, no DOM restructuring)
+  function updateActiveDay(dayIdx, scales) {
+    const d = DATA[dayIdx];
+    const prevD = dayIdx > 0 ? DATA[dayIdx - 1] : null;
+
+    // 1. Position chart elements
+    const cx = scales.xScale(dayIdx);
+    const cy = scales.yScale(d.pred_learned_fusion);
+    document.getElementById('cursor-line').setAttribute('x1', cx.toFixed(1));
+    document.getElementById('cursor-line').setAttribute('x2', cx.toFixed(1));
+    document.getElementById('cursor-dot').setAttribute('cx', cx.toFixed(1));
+    document.getElementById('cursor-dot').setAttribute('cy', cy.toFixed(1));
+
+    // 2. Adjust opacities on bar and strip charts
+    document.querySelectorAll('#gate-bars-svg rect, #zone-strips-svg rect').forEach(el => {
+      const idx = parseInt(el.getAttribute('data-idx'));
+      if (el.classList.contains('zone-strip')) {
+        el.style.opacity = idx === dayIdx ? '1' : '0.35';
+      } else {
+        el.style.opacity = idx === dayIdx ? '1' : '0.45';
+      }
+    });
+
+    // 3. Update scrubber textual label
+    document.getElementById('scrub-date-text').innerHTML = `Viewing day ${dayIdx+1} / ${DATA.length} &middot; ${d.date}`;
+
+    // 4. Update the side Confidence Card panel
+    document.getElementById('confidence-card-root').innerHTML = `
+      <div class="conf-zone-tag zone-${d.zone}">${d.zone}</div>
+      <div class="conf-number" style="color:${zoneColor(d.zone)}">${d.calibrated_confidence.toFixed(0)}%</div>
+      <div class="panel-label" style="margin-bottom:2px;">Calibrated Confidence</div>
+      <div class="conf-action">${zoneAction(d.zone)}</div>
+      <div class="conf-explain">${explainDay(d, prevD)}</div>
+      <div class="legend-row" style="justify-content:space-between; margin-top:16px;">
+        <span>Forecast</span><span class="val">${d.pred_learned_fusion.toFixed(1)} units</span>
+      </div>
+      <div class="legend-row" style="justify-content:space-between;">
+        <span>Actual</span><span class="val">${d.sales} units</span>
+      </div>
+      <div class="legend-row" style="justify-content:space-between;">
+        <span>Safety stock</span><span class="val">${d.safety_stock.toFixed(1)} (base ${d.base_safety_stock.toFixed(1)})</span>
+      </div>
     `;
   }
 
-  render();
+  // Execution
+  const scales = initDashboard();
+  const scrubber = document.getElementById('scrubber');
+  
+  scrubber.addEventListener('input', (e) => {
+    updateActiveDay(parseInt(e.target.value), scales);
+  });
+
+  // Initial trigger for latest frame
+  updateActiveDay(DATA.length - 1, scales);
 })();
 </script>
