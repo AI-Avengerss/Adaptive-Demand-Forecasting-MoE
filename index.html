@@ -734,10 +734,12 @@
 
       <div class="note">
         Validated with real LightGBM and a real PyTorch LSTM (replacing the scikit-learn
-        stand-ins used during initial development): learned fusion now wins on both RMSE
-        and MAE in both the stable and volatile regime. An earlier prototype run using
-        sklearn stand-ins showed a small gap in the volatile regime; that gap closed once
-        the real LSTM's genuine sequence memory replaced the sklearn approximation.
+        stand-ins used during initial development): learned fusion is the best configuration
+        in the stable regime on both RMSE and MAE. In the volatile regime, the standalone
+        LSTM expert achieves the lowest error; learned fusion still clearly outperforms the
+        fixed 60/40 baseline here (RMSE 7.219 vs. 7.413), but does not surpass the single
+        best expert. Reported in full, including this nuance, rather than only the favorable
+        comparison.
       </div>
     `;
 
